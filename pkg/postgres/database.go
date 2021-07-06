@@ -12,6 +12,7 @@ const (
 	CREATE_SCHEMA        = `CREATE SCHEMA IF NOT EXISTS "%s" AUTHORIZATION "%s"`
 	CREATE_EXTENSION     = `CREATE EXTENSION IF NOT EXISTS "%s"`
 	ALTER_DB_OWNER       = `ALTER DATABASE "%s" OWNER TO "%s"`
+	ALTER_SCHEMA_OWNER   = `ALTER SCHEMA "%s" OWNER TO "%s"`
 	DROP_DATABASE        = `DROP DATABASE "%s"`
 	GRANT_USAGE_SCHEMA   = `GRANT USAGE ON SCHEMA "%s" TO "%s"`
 	GRANT_ALL_TABLES     = `GRANT %s ON ALL TABLES IN SCHEMA "%s" TO "%s"`
@@ -31,6 +32,13 @@ func (c *pg) CreateDB(dbname, role string) error {
 	if err != nil {
 		return err
 	}
+
+	// Alter public schema owner to the role, too
+	// This allows granting privileges to writer and reader roles later
+	_, err = c.db.Exec(fmt.Sprintf(ALTER_SCHEMA_OWNER, "public", role))
+    if err != nil {
+        return err
+    }
 	return nil
 }
 
